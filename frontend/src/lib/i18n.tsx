@@ -1,0 +1,333 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+
+export type Lang = "en" | "ar";
+
+type Dict = Record<string, { en: string; ar: string }>;
+
+const dict: Dict = {
+  "app.name": { en: "RestoMate AI", ar: "ريستوميت AI" },
+  "app.tagline": { en: "One restaurant. One intelligent system.", ar: "مطعم واحد. نظام ذكي واحد." },
+  "nav.menu": { en: "Menu", ar: "المنيو" },
+  "nav.orders": { en: "My orders", ar: "طلباتي" },
+  "nav.profile": { en: "Profile", ar: "الحساب" },
+  "nav.board": { en: "Live board", ar: "لوحة العمليات" },
+  "nav.dashboard": { en: "Dashboard", ar: "لوحة التحكم" },
+  "nav.inventory": { en: "Inventory", ar: "المخزون" },
+  "nav.suppliers": { en: "Suppliers", ar: "الموردون" },
+  "nav.purchasing": { en: "Purchase orders", ar: "أوامر الشراء" },
+  "nav.forecast": { en: "Forecasting", ar: "التنبؤ بالطلب" },
+  "nav.staff": { en: "Staff", ar: "الفريق" },
+  "nav.menuAdmin": { en: "Menu manager", ar: "إدارة المنيو" },
+  "nav.audit": { en: "Audit log", ar: "سجل التدقيق" },
+  "nav.kiosk": { en: "AI kiosk", ar: "كشك الذكاء الاصطناعي" },
+  "nav.logout": { en: "Sign out", ar: "تسجيل الخروج" },
+  "common.search": { en: "Search", ar: "بحث" },
+  "common.all": { en: "All", ar: "الكل" },
+  "common.save": { en: "Save", ar: "حفظ" },
+  "common.cancel": { en: "Cancel", ar: "إلغاء" },
+  "common.confirm": { en: "Confirm", ar: "تأكيد" },
+  "common.close": { en: "Close", ar: "إغلاق" },
+  "common.add": { en: "Add", ar: "إضافة" },
+  "common.edit": { en: "Edit", ar: "تعديل" },
+  "common.delete": { en: "Delete", ar: "حذف" },
+  "common.loading": { en: "Loading…", ar: "جارٍ التحميل…" },
+  "common.retry": { en: "Retry", ar: "إعادة المحاولة" },
+  "common.noData": { en: "No data yet", ar: "لا توجد بيانات بعد" },
+  "common.actions": { en: "Actions", ar: "إجراءات" },
+  "common.status": { en: "Status", ar: "الحالة" },
+  "common.total": { en: "Total", ar: "الإجمالي" },
+  "common.subtotal": { en: "Subtotal", ar: "المجموع الفرعي" },
+  "common.quantity": { en: "Quantity", ar: "الكمية" },
+  "common.price": { en: "Price", ar: "السعر" },
+  "common.name": { en: "Name", ar: "الاسم" },
+  "common.email": { en: "Email", ar: "البريد الإلكتروني" },
+  "common.phone": { en: "Phone", ar: "الهاتف" },
+  "common.address": { en: "Address", ar: "العنوان" },
+  "common.role": { en: "Role", ar: "الدور" },
+  "common.active": { en: "Active", ar: "نشط" },
+  "common.inactive": { en: "Inactive", ar: "غير نشط" },
+  "common.notes": { en: "Notes", ar: "ملاحظات" },
+  "common.back": { en: "Back", ar: "رجوع" },
+  "common.refresh": { en: "Refresh", ar: "تحديث" },
+  "common.language": { en: "العربية", ar: "English" },
+  "common.required": { en: "Required", ar: "مطلوب" },
+  "common.optional": { en: "Optional", ar: "اختياري" },
+  "common.today": { en: "Today", ar: "اليوم" },
+  "common.items": { en: "items", ar: "صنف" },
+  "status.pending": { en: "Pending", ar: "قيد الانتظار" },
+  "status.confirmed": { en: "Confirmed", ar: "مؤكد" },
+  "status.preparing": { en: "Preparing", ar: "قيد التحضير" },
+  "status.completed": { en: "Completed", ar: "مكتمل" },
+  "status.cancelled": { en: "Cancelled", ar: "ملغى" },
+  "status.paid": { en: "Paid", ar: "مدفوع" },
+  "status.unpaid": { en: "Unpaid", ar: "غير مدفوع" },
+  "status.refunded": { en: "Refunded", ar: "مسترد" },
+  "status.failed": { en: "Failed", ar: "فشل" },
+  "status.active": { en: "Active", ar: "نشط" },
+  "status.inactive": { en: "Inactive", ar: "غير نشط" },
+  "status.draft": { en: "Draft", ar: "مسودة" },
+  "status.ordered": { en: "Ordered", ar: "تم الطلب" },
+  "status.received": { en: "Received", ar: "تم الاستلام" },
+  "common.min": { en: "min", ar: "دقيقة" },
+  "common.since": { en: "Since", ar: "منذ" },
+  "login.welcome": { en: "Welcome back", ar: "أهلاً بعودتك" },
+  "login.subtitle": { en: "Sign in to order, operate or manage your restaurant.", ar: "سجّل الدخول للطلب أو التشغيل أو إدارة مطعمك." },
+  "login.customer": { en: "Customer", ar: "عميل" },
+  "login.staff": { en: "Staff", ar: "الفريق" },
+  "login.register": { en: "Create account", ar: "إنشاء حساب" },
+  "login.username": { en: "Username", ar: "اسم المستخدم" },
+  "login.password": { en: "Password", ar: "كلمة المرور" },
+  "login.pin": { en: "PIN", ar: "الرقم السري" },
+  "login.passwordMode": { en: "Use password", ar: "استخدام كلمة المرور" },
+  "login.pinMode": { en: "Use PIN", ar: "استخدام الرقم السري" },
+  "login.signIn": { en: "Sign in", ar: "دخول" },
+  "login.fullName": { en: "Full name", ar: "الاسم بالكامل" },
+  "login.create": { en: "Create account", ar: "إنشاء الحساب" },
+  "login.haveAccount": { en: "Already have an account?", ar: "لديك حساب بالفعل؟" },
+  "login.kiosk": { en: "Open AI kiosk", ar: "افتح كشك الذكاء الاصطناعي" },
+  "login.demoHint": { en: "Seed staff can sign in with their password or PIN.", ar: "يمكن لفريق المطعم الدخول بكلمة المرور أو الرقم السري." },
+  "menu.title": { en: "Explore the menu", ar: "استكشف المنيو" },
+  "menu.subtitle": { en: "142 real dishes and drinks, priced from the live database.", ar: "١٤٢ طبقاً ومشروباً حقيقياً بأسعار من قاعدة البيانات." },
+  "menu.featured": { en: "Featured", ar: "مميز" },
+  "menu.availableOnly": { en: "Available only", ar: "المتوفر فقط" },
+  "menu.add": { en: "Add", ar: "أضف" },
+  "menu.added": { en: "Added to cart", ar: "تمت الإضافة للسلة" },
+  "menu.cart": { en: "Your cart", ar: "سلتك" },
+  "menu.emptyCart": { en: "Your cart is empty. Add something delicious.", ar: "سلتك فاضية. أضف حاجة لذيذة." },
+  "menu.checkout": { en: "Place order", ar: "تأكيد الطلب" },
+  "menu.paymentMethod": { en: "Payment method", ar: "طريقة الدفع" },
+  "menu.orderNotes": { en: "Order notes", ar: "ملاحظات الطلب" },
+  "menu.orderPlaced": { en: "Order placed successfully", ar: "تم إنشاء الطلب بنجاح" },
+  "menu.clear": { en: "Clear cart", ar: "تفريغ السلة" },
+  "menu.viewCart": { en: "View cart", ar: "عرض السلة" },
+  "orders.title": { en: "My orders", ar: "طلباتي" },
+  "orders.subtitle": { en: "Track every order from the kitchen to your table.", ar: "تابع كل طلب من المطبخ إلى طاولتك." },
+  "orders.empty": { en: "You have not placed any orders yet.", ar: "لم تقم بأي طلب حتى الآن." },
+  "orders.order": { en: "Order", ar: "طلب" },
+  "orders.timeline": { en: "Status timeline", ar: "مراحل الطلب" },
+  "orders.items": { en: "Order items", ar: "أصناف الطلب" },
+  "orders.payment": { en: "Payment", ar: "الدفع" },
+  "orders.source": { en: "Source", ar: "المصدر" },
+  "orders.notFound": { en: "Order not found.", ar: "الطلب غير موجود." },
+  "profile.title": { en: "Your profile", ar: "حسابك" },
+  "profile.subtitle": { en: "Keep your contact details up to date.", ar: "حدّث بيانات التواصل الخاصة بك." },
+  "profile.saved": { en: "Profile saved", ar: "تم حفظ الحساب" },
+  "profile.security": { en: "Security", ar: "الأمان" },
+  "profile.currentPassword": { en: "Current password", ar: "كلمة المرور الحالية" },
+  "profile.newPassword": { en: "New password", ar: "كلمة المرور الجديدة" },
+  "profile.changePassword": { en: "Change password", ar: "تغيير كلمة المرور" },
+  "profile.passwordChanged": { en: "Password updated", ar: "تم تحديث كلمة المرور" },
+  "board.title": { en: "Live operations board", ar: "لوحة العمليات المباشرة" },
+  "board.subtitle": { en: "Every new order appears here in real time.", ar: "كل طلب جديد يظهر هنا لحظياً." },
+  "board.pending": { en: "Pending", ar: "بانتظار التأكيد" },
+  "board.confirmed": { en: "Confirmed", ar: "مؤكد" },
+  "board.preparing": { en: "Preparing", ar: "قيد التحضير" },
+  "board.completed": { en: "Completed", ar: "مكتمل" },
+  "board.live": { en: "Live", ar: "مباشر" },
+  "board.offline": { en: "Offline", ar: "غير متصل" },
+  "board.confirmOrder": { en: "Confirm order", ar: "تأكيد الطلب" },
+  "board.startPreparing": { en: "Start preparing", ar: "بدء التحضير" },
+  "board.complete": { en: "Complete", ar: "إنهاء" },
+  "board.cancel": { en: "Cancel order", ar: "إلغاء الطلب" },
+  "board.markPaid": { en: "Mark paid", ar: "تسجيل الدفع" },
+  "board.noOrders": { en: "No orders in this column.", ar: "لا توجد طلبات في هذا العمود." },
+  "board.updated": { en: "Order updated", ar: "تم تحديث الطلب" },
+  "board.insufficientStock": { en: "Not enough stock for this order.", ar: "المخزون غير كافٍ لهذا الطلب." },
+  "dashboard.title": { en: "Business overview", ar: "نظرة عامة على الأعمال" },
+  "dashboard.subtitle": { en: "Facts from completed orders in MySQL. No invented numbers.", ar: "أرقام حقيقية من الطلبات المكتملة في قاعدة البيانات." },
+  "dashboard.revenue": { en: "Completed revenue", ar: "إيراد الطلبات المكتملة" },
+  "dashboard.paidRevenue": { en: "Paid revenue", ar: "الإيراد المحصّل" },
+  "dashboard.completedOrders": { en: "Completed orders", ar: "طلبات مكتملة" },
+  "dashboard.avgOrder": { en: "Average order", ar: "متوسط الطلب" },
+  "dashboard.cancelled": { en: "Cancelled", ar: "ملغاة" },
+  "dashboard.bestSeller": { en: "Best seller", ar: "الأكثر مبيعاً" },
+  "dashboard.sales": { en: "Sales trend", ar: "اتجاه المبيعات" },
+  "dashboard.categories": { en: "Category mix", ar: "توزيع الفئات" },
+  "dashboard.peakHours": { en: "Peak hours", ar: "ساعات الذروة" },
+  "dashboard.sources": { en: "Order sources", ar: "مصادر الطلبات" },
+  "dashboard.topProducts": { en: "Top products", ar: "أفضل الأصناف" },
+  "dashboard.insights": { en: "Insights", ar: "رؤى" },
+  "dashboard.revenueDefinition": { en: "Revenue counts completed orders only. Paid revenue comes from recorded payments.", ar: "الإيراد يحسب الطلبات المكتملة فقط، والمحصّل من الدفعات المسجلة." },
+  "dashboard.analyst": { en: "Ask the analyst", ar: "اسأل المحلل" },
+  "dashboard.analystPlaceholder": { en: "What were my best sellers this month?", ar: "ما أكثر الأصناف مبيعاً هذا الشهر؟" },
+  "dashboard.analystHint": { en: "Answers are computed from real database facts — never invented.", ar: "الإجابات تُحسب من بيانات حقيقية ولا يتم اختراعها." },
+  "inventory.title": { en: "Inventory & recipes", ar: "المخزون والوصفات" },
+  "inventory.subtitle": { en: "Stock, consumption, waste, suppliers and purchase planning.", ar: "المخزون والاستهلاك والهالك والموردون وتخطيط الشراء." },
+  "inventory.ingredients": { en: "Ingredients", ar: "المكونات" },
+  "inventory.movements": { en: "Stock movements", ar: "حركات المخزون" },
+  "inventory.recipes": { en: "Recipes", ar: "الوصفات" },
+  "inventory.recommendations": { en: "Purchase plan", ar: "خطة الشراء" },
+  "inventory.addIngredient": { en: "Add ingredient", ar: "إضافة مكون" },
+  "inventory.adjustStock": { en: "Adjust stock", ar: "تعديل المخزون" },
+  "inventory.onHand": { en: "On hand", ar: "المتاح" },
+  "inventory.minimum": { en: "Minimum", ar: "الحد الأدنى" },
+  "inventory.safety": { en: "Safety", ar: "مخزون الأمان" },
+  "inventory.unit": { en: "Unit", ar: "الوحدة" },
+  "inventory.leadTime": { en: "Lead time", ar: "مدة التوريد" },
+  "inventory.cost": { en: "Unit cost", ar: "تكلفة الوحدة" },
+  "inventory.recipeFor": { en: "Recipe for", ar: "وصفة" },
+  "inventory.selectItem": { en: "Select a menu item", ar: "اختر صنفاً" },
+  "inventory.addLine": { en: "Add recipe line", ar: "إضافة سطر" },
+  "inventory.noRecipe": { en: "No recipe configured for this item.", ar: "لا توجد وصفة لهذا الصنف." },
+  "inventory.lowStock": { en: "Low stock alerts", ar: "تنبيهات نقص المخزون" },
+  "inventory.noAlerts": { en: "All stock levels are healthy.", ar: "كل مستويات المخزون جيدة." },
+  "inventory.suggested": { en: "Suggested", ar: "المقترح" },
+  "inventory.reason": { en: "Reason", ar: "السبب" },
+  "inventory.movementType": { en: "Type", ar: "النوع" },
+  "inventory.change": { en: "Change", ar: "التغيير" },
+  "inventory.after": { en: "After", ar: "بعد" },
+  "inventory.waste": { en: "Waste", ar: "هالك" },
+  "inventory.purchase": { en: "Purchase", ar: "شراء" },
+  "inventory.adjustment": { en: "Adjustment", ar: "تسوية" },
+  "inventory.initial": { en: "Initial", ar: "رصيد افتتاحي" },
+  "suppliers.title": { en: "Suppliers", ar: "الموردون" },
+  "suppliers.subtitle": { en: "Contacts and purchasing partners.", ar: "جهات الاتصال وشركاء التوريد." },
+  "suppliers.add": { en: "Add supplier", ar: "إضافة مورد" },
+  "suppliers.contact": { en: "Contact", ar: "مسؤول التواصل" },
+  "suppliers.empty": { en: "No suppliers yet. Add your first supplier to start purchasing.", ar: "لا يوجد موردون بعد. أضف أول مورد لبدء الشراء." },
+  "purchasing.title": { en: "Purchase orders", ar: "أوامر الشراء" },
+  "purchasing.subtitle": { en: "Create orders and receive stock with a full audit trail.", ar: "أنشئ أوامر واستلم المخزون مع سجل تدقيق كامل." },
+  "purchasing.create": { en: "New purchase order", ar: "أمر شراء جديد" },
+  "purchasing.supplier": { en: "Supplier", ar: "المورد" },
+  "purchasing.expected": { en: "Expected date", ar: "تاريخ التوريد" },
+  "purchasing.lines": { en: "Lines", ar: "البنود" },
+  "purchasing.addLine": { en: "Add line", ar: "إضافة بند" },
+  "purchasing.receive": { en: "Receive", ar: "استلام" },
+  "purchasing.receiveTitle": { en: "Receive purchase order", ar: "استلام أمر الشراء" },
+  "purchasing.ordered": { en: "Ordered", ar: "تم الطلب" },
+  "purchasing.draft": { en: "Draft", ar: "مسودة" },
+  "purchasing.received": { en: "Received", ar: "تم الاستلام" },
+  "purchasing.partial": { en: "Partially received", ar: "استلام جزئي" },
+  "purchasing.quantityOrdered": { en: "Ordered", ar: "المطلوب" },
+  "purchasing.quantityReceived": { en: "Received", ar: "المستلم" },
+  "purchasing.submit": { en: "Submit order", ar: "إرسال الأمر" },
+  "purchasing.empty": { en: "No purchase orders yet.", ar: "لا توجد أوامر شراء بعد." },
+  "forecast.title": { en: "Demand forecasting", ar: "التنبؤ بالطلب" },
+  "forecast.subtitle": { en: "Chronological 80/20 split, compared with a per-product baseline.", ar: "تقسيم زمني 80/20 ومقارنة مع متوسط كل صنف." },
+  "forecast.train": { en: "Train model", ar: "تدريب النموذج" },
+  "forecast.retrain": { en: "Retrain model", ar: "إعادة التدريب" },
+  "forecast.trained": { en: "Trained", ar: "تم التدريب" },
+  "forecast.notTrained": { en: "Not trained yet", ar: "لم يتم التدريب بعد" },
+  "forecast.model": { en: "Model", ar: "النموذج" },
+  "forecast.mae": { en: "MAE", ar: "متوسط الخطأ المطلق" },
+  "forecast.rmse": { en: "RMSE", ar: "جذر متوسط مربع الخطأ" },
+  "forecast.baseline": { en: "Baseline MAE", ar: "خطأ خط الأساس" },
+  "forecast.predictions": { en: "Next days", ar: "الأيام القادمة" },
+  "forecast.history": { en: "Completed demand history", ar: "تاريخ الطلب المكتمل" },
+  "forecast.horizon": { en: "Horizon (days)", ar: "المدى (أيام)" },
+  "forecast.item": { en: "Menu item", ar: "الصنف" },
+  "forecast.warnings": { en: "Model warnings", ar: "تحذيرات النموذج" },
+  "forecast.disclaimer": { en: "Predictions are estimates, not guarantees. The seed dataset is small; treat accuracy as indicative only.", ar: "التوقعات تقديرية وليست ضمانات. بيانات البداية صغيرة، لذا الدقة إرشادية فقط." },
+  "forecast.empty": { en: "Train the model to see demand predictions.", ar: "درّب النموذج لعرض توقعات الطلب." },
+  "forecast.training": { en: "Training…", ar: "جارٍ التدريب…" },
+  "staff.title": { en: "Staff accounts", ar: "حسابات الفريق" },
+  "staff.subtitle": { en: "Roles, PINs and access. Hashes are never exposed.", ar: "الأدوار والأرقام السرية والصلاحيات. لا يتم عرض أي هاش." },
+  "staff.add": { en: "Add staff", ar: "إضافة عضو" },
+  "staff.username": { en: "Username", ar: "اسم المستخدم" },
+  "staff.pin": { en: "PIN (optional)", ar: "الرقم السري (اختياري)" },
+  "staff.resetPassword": { en: "Reset password", ar: "إعادة تعيين كلمة المرور" },
+  "staff.newPassword": { en: "New password", ar: "كلمة مرور جديدة" },
+  "staff.created": { en: "Staff account created", ar: "تم إنشاء الحساب" },
+  "staff.updated": { en: "Staff account updated", ar: "تم تحديث الحساب" },
+  "staff.chef": { en: "Chef", ar: "شيف" },
+  "staff.cashier": { en: "Cashier", ar: "كاشير" },
+  "staff.manager": { en: "Manager", ar: "مدير" },
+  "staff.customer": { en: "Customer", ar: "عميل" },
+  "menuAdmin.title": { en: "Menu manager", ar: "إدارة المنيو" },
+  "menuAdmin.subtitle": { en: "Manage the real menu, prices and availability.", ar: "إدارة المنيو والأسعار والتوفر الحقيقي." },
+  "menuAdmin.addItem": { en: "Add menu item", ar: "إضافة صنف" },
+  "menuAdmin.category": { en: "Category", ar: "الفئة" },
+  "menuAdmin.nameAr": { en: "Arabic name", ar: "الاسم العربي" },
+  "menuAdmin.prepTime": { en: "Prep time (min)", ar: "وقت التحضير (دقيقة)" },
+  "menuAdmin.description": { en: "Description", ar: "الوصف" },
+  "menuAdmin.available": { en: "Available", ar: "متوفر" },
+  "menuAdmin.featured": { en: "Featured", ar: "مميز" },
+  "menuAdmin.retire": { en: "Retire item", ar: "إيقاف الصنف" },
+  "menuAdmin.retired": { en: "Item retired", ar: "تم إيقاف الصنف" },
+  "audit.title": { en: "Audit log", ar: "سجل التدقيق" },
+  "audit.subtitle": { en: "Security and operational events recorded by the backend.", ar: "أحداث الأمان والتشغيل المسجلة من الخادم." },
+  "audit.action": { en: "Action", ar: "الإجراء" },
+  "audit.entity": { en: "Entity", ar: "الكيان" },
+  "audit.actor": { en: "Actor", ar: "المستخدم" },
+  "audit.when": { en: "When", ar: "الوقت" },
+  "kiosk.title": { en: "AI kiosk", ar: "كشك الذكاء الاصطناعي" },
+  "kiosk.greeting": { en: "Welcome! Tell me what you would like to order.", ar: "أهلاً بيك! قولّي عايز تطلب إيه." },
+  "kiosk.placeholder": { en: "Type your order…", ar: "اكتب طلبك…" },
+  "kiosk.send": { en: "Send", ar: "إرسال" },
+  "kiosk.cart": { en: "Your order", ar: "طلبك" },
+  "kiosk.emptyCart": { en: "Your order is empty.", ar: "طلبك فاضي." },
+  "kiosk.confirm": { en: "Confirm order", ar: "تأكيد الطلب" },
+  "kiosk.confirmHint": { en: "Nothing is submitted until you press confirm.", ar: "لا يتم إرسال أي طلب قبل الضغط على تأكيد." },
+  "kiosk.yourName": { en: "Your name (optional)", ar: "اسمك (اختياري)" },
+  "kiosk.yourPhone": { en: "Phone (optional)", ar: "الهاتف (اختياري)" },
+  "kiosk.success": { en: "Order confirmed", ar: "تم تأكيد الطلب" },
+  "kiosk.successBody": { en: "Your order is now in the kitchen queue. Please pay at the counter.", ar: "طلبك الآن في طابور المطبخ. من فضلك ادفع عند الكاشير." },
+  "kiosk.newOrder": { en: "Start a new order", ar: "طلب جديد" },
+  "kiosk.voiceOn": { en: "Voice on", ar: "الصوت مفعل" },
+  "kiosk.voiceOff": { en: "Voice off", ar: "الصوت مغلق" },
+  "kiosk.quick": { en: "Try asking", ar: "جرّب اسأل" },
+  "kiosk.exit": { en: "Exit kiosk", ar: "الخروج من الكشك" },
+  "kiosk.orderNumber": { en: "Order number", ar: "رقم الطلب" },
+  "error.generic": { en: "Something went wrong. Please try again.", ar: "حدث خطأ. حاول مرة أخرى." },
+  "error.forbidden": { en: "You do not have access to this page.", ar: "ليس لديك صلاحية لهذه الصفحة." }
+};
+
+export const quickKioskPrompts: Record<Lang, string[]> = {
+  en: ["Show me the menu", "I want two OG Burgers and an OG Mojito", "What is in my cart?", "How much is the truffle burger?"],
+  ar: ["اعرض المنيو", "عايز اتنين أو جي برجر وموهيتو أو جي", "الطلب فيه إيه؟", "بكام برجر ترافل؟"]
+};
+
+interface I18nValue {
+  lang: Lang;
+  dir: "ltr" | "rtl";
+  setLang: (lang: Lang) => void;
+  toggle: () => void;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  pick: (en?: string | null, ar?: string | null) => string;
+}
+
+const I18nContext = createContext<I18nValue | null>(null);
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>(() => (localStorage.getItem("rm_lang") as Lang) || "en");
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    localStorage.setItem("rm_lang", lang);
+  }, [lang]);
+
+  const setLang = useCallback((next: Lang) => setLangState(next), []);
+  const toggle = useCallback(() => setLangState((prev) => (prev === "en" ? "ar" : "en")), []);
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>) => {
+      let text = dict[key]?.[lang] ?? dict[key]?.en ?? key;
+      if (vars) {
+        for (const [name, value] of Object.entries(vars)) {
+          text = text.replace(new RegExp(`\\{${name}\\}`, "g"), String(value));
+        }
+      }
+      return text;
+    },
+    [lang]
+  );
+  const pick = useCallback(
+    (en?: string | null, ar?: string | null) => {
+      if (lang === "ar") return ar || en || "";
+      return en || ar || "";
+    },
+    [lang]
+  );
+
+  const value = useMemo(
+    () => ({ lang, dir: lang === "ar" ? ("rtl" as const) : ("ltr" as const), setLang, toggle, t, pick }),
+    [lang, setLang, toggle, t, pick]
+  );
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+export function useI18n(): I18nValue {
+  const ctx = useContext(I18nContext);
+  if (!ctx) throw new Error("useI18n must be used inside I18nProvider");
+  return ctx;
+}

@@ -1,0 +1,33 @@
+# Environment & secrets
+.env
+.env.local
+*.env
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+backend/ml_artifacts/*.joblib
+backend/ml_artifacts/*.json
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+coverage/
+
+# Database dumps (contain real data)
+database/backups/*.sql
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
